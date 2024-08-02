@@ -3,7 +3,7 @@ package main
 import "log"
 
 func topic1_2_topic2(in string) string {
-	return in
+	return in + "."
 }
 
 func topic2_rec(in string) {
