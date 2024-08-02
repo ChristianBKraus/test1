@@ -11,10 +11,16 @@ type INode interface {
 	start()
 }
 
+type Node struct {
+	id              string
+	transformations []transformationInfo
+	receivers       []receiveInfo
+}
+
 var nodes []*Node
 
-func CreateNode() INode {
-	node := Node{}
+func CreateNode(id string) INode {
+	node := Node{id: id}
 	nodes = append(nodes, &node)
 	return &node
 }
@@ -27,11 +33,6 @@ func StartNodes() {
 
 func waitForNodesToEnd() {
 	waitGroup.Wait()
-}
-
-type Node struct {
-	transformations []transformationInfo
-	receivers       []receiveInfo
 }
 
 var waitGroup sync.WaitGroup
@@ -56,6 +57,8 @@ func (node *Node) add(in string, out string, transform func(string) string) erro
 
 	node.transformations = append(node.transformations, t)
 
+	log.Println("ADT " + node.id + ": " + in + "-" + out)
+
 	return nil
 }
 
@@ -68,18 +71,20 @@ func (node *Node) addReceiver(topic string, receive func(string)) error {
 	r := receiveInfo{topic, channel, receive}
 	node.receivers = append(node.receivers, r)
 
+	log.Println("ADR " + node.id + ": " + topic)
+
 	return nil
 }
 
 func (node *Node) start() {
-	log.Println("BEG")
+	log.Println("BEG " + node.id)
 	for _, t := range node.transformations {
 		waitGroup.Add(1)
-		go doTransformation(t)
+		go doTransformation(node.id, t)
 	}
 	for _, r := range node.receivers {
 		waitGroup.Add(1)
-		go doReceiver(r)
+		go doReceiver(node.id, r)
 	}
 }
 
@@ -96,32 +101,32 @@ type receiveInfo struct {
 	function func(string)
 }
 
-func doTransformation(t transformationInfo) {
+func doTransformation(nodeId string, t transformationInfo) {
 	defer waitGroup.Done()
-	log.Println("STT " + t.id)
+	log.Println("STT " + nodeId + ": " + t.id)
 	for {
 		in, ok := <-t.in
 		if !ok {
-			log.Println("ENT " + t.id)
+			log.Println("ENT " + nodeId + ": " + t.id)
 			close(t.out)
 			return
 		}
 		out := t.transform(in)
-		log.Println("MAP " + in + " -> " + out)
+		log.Println("MAP " + nodeId + ": " + in + " -> " + out)
 		t.out <- out
 	}
 }
 
-func doReceiver(r receiveInfo) {
+func doReceiver(nodeId string, r receiveInfo) {
 	defer waitGroup.Done()
-	log.Println("STR " + r.id)
+	log.Println("STR " + nodeId + ": " + r.id)
 	for {
 		in, ok := <-r.in
 		if !ok {
-			log.Println("ENR " + r.id)
+			log.Println("ENR " + nodeId + ": " + r.id)
 			return
 		}
-		log.Println("REC " + in)
+		log.Println("REC " + nodeId + ": " + in)
 		r.function(in)
 	}
 }

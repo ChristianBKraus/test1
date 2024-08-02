@@ -61,6 +61,7 @@ func (b *Broker) send(topic string, value string) error {
 	if channel == nil {
 		return &Error{"Topic does not exist"}
 	}
+	log.Println("SND " + topic + " <- " + value)
 	channel <- value
 	return nil
 }
