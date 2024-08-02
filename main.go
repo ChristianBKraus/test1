@@ -1,6 +1,8 @@
 package main
 
-import "log"
+import (
+	"log"
+)
 
 func topic1_2_topic2(in string) string {
 	return in + "."
