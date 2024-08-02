@@ -11,11 +11,10 @@ func topic2_rec(in string) {
 const TOPIC1 = "Topic_1"
 const TOPIC2 = "Topic_2"
 
-func main() {
-	// setup
+func setup() IBroker {
 	broker := GetBroker()
 
-	producer := broker.createTopic(TOPIC1)
+	broker.createProducer(TOPIC1)
 
 	node1 := CreateNode()
 	node1.add(TOPIC1, TOPIC2, topic1_2_topic2)
@@ -25,10 +24,14 @@ func main() {
 
 	StartNodes()
 
-	// run
-	producer <- "Test"
+	return broker
+}
 
-	// terminate
-	close(producer)
-	waitForNodesToEnd()
+func main() {
+	broker := setup()
+
+	broker.send(TOPIC1, "Test 1")
+	broker.send(TOPIC1, "Test 2")
+
+	broker.close()
 }

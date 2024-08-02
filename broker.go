@@ -7,10 +7,18 @@ import (
 
 type IBroker interface {
 	createTopic(topic string) chan string
+	createProducer(topic string) chan string
 	subscribeTopic(topic string) (chan string, error)
 	send(topic string, value string) error
 	close()
 }
+type Broker struct {
+	topics    map[string]chan string
+	producers []string
+	mutex     sync.Mutex
+}
+
+var broker IBroker
 
 func GetBroker() IBroker {
 	if broker == nil {
@@ -20,13 +28,6 @@ func GetBroker() IBroker {
 	}
 	return broker
 }
-
-type Broker struct {
-	topics map[string]chan string
-	mutex  sync.Mutex
-}
-
-var broker IBroker
 
 func (b *Broker) createTopic(topic string) chan string {
 	channel := make(chan string)
@@ -38,6 +39,11 @@ func (b *Broker) createTopic(topic string) chan string {
 	log.Println("ADD " + topic)
 
 	return channel
+}
+
+func (b *Broker) createProducer(topic string) chan string {
+	b.producers = append(b.producers, topic)
+	return b.createTopic(topic)
 }
 
 func (b *Broker) subscribeTopic(topic string) (chan string, error) {
@@ -60,8 +66,8 @@ func (b *Broker) send(topic string, value string) error {
 }
 
 func (b *Broker) close() {
-	for _, topic := range b.topics {
-		close(topic)
+	for _, producer := range b.producers {
+		close(b.topics[producer])
 	}
 	waitForNodesToEnd()
 }
