@@ -1,6 +1,7 @@
 package main
 
 import (
+	"jupiterpa/fin/core"
 	"log"
 )
 
@@ -18,19 +19,19 @@ const TOPIC_2 = "Topic_2"
 const NODE_1 = "Node 1"
 const NODE_2 = "Node 2"
 
-func setup() IBroker {
+func setup() core.IBroker {
 	log.Println("Start Setup")
-	broker := GetBroker()
+	broker := core.GetBroker()
 
-	broker.createProducer(TOPIC_1)
+	broker.CreateProducer(TOPIC_1)
 
-	node1 := CreateNode(NODE_1)
-	node1.add(TOPIC_1, TOPIC_2, topic1_2_topic2)
+	node1 := core.CreateNode(NODE_1)
+	node1.Add(TOPIC_1, TOPIC_2, topic1_2_topic2)
 
-	node2 := CreateNode(NODE_2)
-	node2.addReceiver(TOPIC_2, topic2_rec)
+	node2 := core.CreateNode(NODE_2)
+	node2.AddReceiver(TOPIC_2, topic2_rec)
 
-	StartNodes()
+	core.StartNodes()
 
 	log.Println("Finsh Setup")
 	log.Println()
@@ -39,10 +40,11 @@ func setup() IBroker {
 }
 
 func main() {
+
 	broker := setup()
 
-	broker.send(TOPIC_1, "Test 1")
-	broker.send(TOPIC_1, "Test 2")
+	broker.Send(TOPIC_1, "Test 1")
+	broker.Send(TOPIC_1, "Test 2")
 
-	broker.close()
+	broker.Close()
 }

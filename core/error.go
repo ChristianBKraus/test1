@@ -1,4 +1,4 @@
-package main
+package core
 
 type Error struct {
 	text string

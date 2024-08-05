@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"log"
@@ -6,9 +6,9 @@ import (
 )
 
 type INode interface {
-	add(in string, out string, transform func(string) string) error
-	addReceiver(in string, receive func(string)) error
-	start()
+	Add(in string, out string, transform func(string) string) error
+	AddReceiver(in string, receive func(string)) error
+	Start()
 }
 
 type Node struct {
@@ -27,7 +27,7 @@ func CreateNode(id string) INode {
 
 func StartNodes() {
 	for _, node := range nodes {
-		node.start()
+		node.Start()
 	}
 }
 
@@ -37,8 +37,8 @@ func waitForNodesToEnd() {
 
 var waitGroup sync.WaitGroup
 
-func (node *Node) subscribe(topic string) (chan string, error) {
-	inChannel, err := broker.subscribeTopic(topic)
+func (node *Node) Subscribe(topic string) (chan string, error) {
+	inChannel, err := broker.SubscribeTopic(topic)
 	if err != nil {
 		log.Println("Topic " + topic + " does not exist: " + err.Error())
 		return nil, err
@@ -46,13 +46,13 @@ func (node *Node) subscribe(topic string) (chan string, error) {
 	return inChannel, nil
 }
 
-func (node *Node) add(in string, out string, transform func(string) string) error {
-	inChannel, err := node.subscribe(in)
+func (node *Node) Add(in string, out string, transform func(string) string) error {
+	inChannel, err := node.Subscribe(in)
 	if err != nil {
 		return err
 	}
 
-	outChannel := broker.createTopic(out)
+	outChannel := broker.CreateTopic(out)
 	t := transformationInfo{in + "-" + out, inChannel, outChannel, transform}
 
 	node.transformations = append(node.transformations, t)
@@ -62,8 +62,8 @@ func (node *Node) add(in string, out string, transform func(string) string) erro
 	return nil
 }
 
-func (node *Node) addReceiver(topic string, receive func(string)) error {
-	channel, error := node.subscribe(topic)
+func (node *Node) AddReceiver(topic string, receive func(string)) error {
+	channel, error := node.Subscribe(topic)
 	if error != nil {
 		return error
 	}
@@ -76,7 +76,7 @@ func (node *Node) addReceiver(topic string, receive func(string)) error {
 	return nil
 }
 
-func (node *Node) start() {
+func (node *Node) Start() {
 	log.Println("BEG " + node.id)
 	for _, t := range node.transformations {
 		waitGroup.Add(1)

@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"log"
@@ -6,11 +6,11 @@ import (
 )
 
 type IBroker interface {
-	createTopic(topic string) chan string
-	createProducer(topic string) chan string
-	subscribeTopic(topic string) (chan string, error)
-	send(topic string, value string) error
-	close()
+	CreateTopic(topic string) chan string
+	CreateProducer(topic string) chan string
+	SubscribeTopic(topic string) (chan string, error)
+	Send(topic string, value string) error
+	Close()
 }
 type Broker struct {
 	topics    map[string]chan string
@@ -29,7 +29,7 @@ func GetBroker() IBroker {
 	return broker
 }
 
-func (b *Broker) createTopic(topic string) chan string {
+func (b *Broker) CreateTopic(topic string) chan string {
 	channel := make(chan string)
 
 	b.mutex.Lock()
@@ -41,12 +41,12 @@ func (b *Broker) createTopic(topic string) chan string {
 	return channel
 }
 
-func (b *Broker) createProducer(topic string) chan string {
+func (b *Broker) CreateProducer(topic string) chan string {
 	b.producers = append(b.producers, topic)
-	return b.createTopic(topic)
+	return b.CreateTopic(topic)
 }
 
-func (b *Broker) subscribeTopic(topic string) (chan string, error) {
+func (b *Broker) SubscribeTopic(topic string) (chan string, error) {
 	log.Println("SUB " + topic)
 
 	if b.topics[topic] == nil {
@@ -56,7 +56,7 @@ func (b *Broker) subscribeTopic(topic string) (chan string, error) {
 	return b.topics[topic], nil
 }
 
-func (b *Broker) send(topic string, value string) error {
+func (b *Broker) Send(topic string, value string) error {
 	channel := b.topics[topic]
 	if channel == nil {
 		return &Error{"Topic does not exist"}
@@ -66,7 +66,7 @@ func (b *Broker) send(topic string, value string) error {
 	return nil
 }
 
-func (b *Broker) close() {
+func (b *Broker) Close() {
 	for _, producer := range b.producers {
 		close(b.topics[producer])
 	}
