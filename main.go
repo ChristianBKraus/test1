@@ -41,8 +41,8 @@ func setup() core.IBroker {
 }
 
 func main() {
-	log.Get().Activate(log.Setup, log.Information)
-	log.Get().Activate(log.StartStop, log.Information)
+	//log.Get().Activate(log.Setup, log.Information)
+	//log.Get().Activate(log.StartStop, log.Information)
 	log.Get().Activate(log.Process, log.Information)
 
 	broker := setup()

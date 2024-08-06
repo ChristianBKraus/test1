@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	log "jupiterpa/fin/core/log"
 	"sync"
 )
@@ -56,7 +57,7 @@ func (b *Broker) CreateProducer(topic string) chan string {
 }
 
 func (b *Broker) SubscribeTopic(topic string) (chan string, error) {
-	log.Info(log.Setup, "SUB "+topic)
+	log.Info(log.Setup, "ASB "+topic)
 
 	topicInfo, ok := b.topics[topic]
 	if !ok {
@@ -80,7 +81,7 @@ func (b *Broker) Send(topic string, value string) error {
 	if !ok {
 		return &Error{"Topic does not exist"}
 	}
-	log.Info(log.Process, "SND "+topic+" <- "+value)
+	log.Info(log.Process, fmt.Sprintf("SND %-10s <- %s", topic, value))
 	topicInfo.input <- value
 	return nil
 }
@@ -106,7 +107,7 @@ func distribute(topic string, inChannel chan string, outChannels []chan string) 
 		}
 		for _, outChannel := range outChannels {
 			outChannel <- value
-			log.Info(log.Process, "DIS "+topic+" <- "+value)
+			log.Info(log.Process, fmt.Sprintf("DIS %-10s <> %s", topic, value))
 		}
 	}
 }

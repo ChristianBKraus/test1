@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	log "jupiterpa/fin/core/log"
 	"sync"
 )
@@ -77,7 +78,7 @@ func (node *Node) AddReceiver(topic string, receive func(string)) error {
 }
 
 func (node *Node) Start() {
-	log.Info(log.StartStop, "BEG "+node.id)
+	log.Info(log.StartStop, "STN "+node.id)
 	for _, t := range node.transformations {
 		waitGroup.Add(1)
 		go doTransformation(node.id, t)
@@ -112,7 +113,7 @@ func doTransformation(nodeId string, t transformationInfo) {
 			return
 		}
 		out := t.transform(in)
-		log.Info(log.Process, "MAP "+nodeId+": "+in+" -> "+out)
+		log.Info(log.Process, fmt.Sprintf("MAP %-10s -- %s -> %s", nodeId, in, out))
 		t.out <- out
 	}
 }
@@ -126,7 +127,7 @@ func doReceiver(nodeId string, r receiveInfo) {
 			log.Info(log.StartStop, "ENR "+nodeId+": "+r.id)
 			return
 		}
-		log.Info(log.Process, "REC "+nodeId+": "+in)
+		log.Info(log.Process, fmt.Sprintf("REC %-10s -> %s", nodeId, in))
 		r.function(in)
 	}
 }
