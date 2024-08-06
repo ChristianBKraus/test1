@@ -31,6 +31,7 @@ func setup() core.IBroker {
 	node2 := core.CreateNode(NODE_2)
 	node2.AddReceiver(TOPIC_2, topic2_rec)
 
+	broker.Start()
 	core.StartNodes()
 
 	log.Println("Finsh Setup")
