@@ -18,7 +18,7 @@ const (
 	Process
 )
 
-type ILogger interface {
+type Logger interface {
 	Activate(category LogCategory, level LogLevel)
 	Log(category LogCategory, message string, level LogLevel)
 	Info(category LogCategory, message string)
@@ -26,9 +26,6 @@ type ILogger interface {
 	GetAllMessages() []string
 }
 
-func Activate(category LogCategory, level LogLevel) {
-	Get().Activate(category, level)
-}
 func Log(category LogCategory, message string, level LogLevel) {
 	Get().Log(category, message, level)
 }
@@ -36,33 +33,33 @@ func Info(category LogCategory, message string) {
 	Get().Info(category, message)
 }
 
-func Get() ILogger {
-	if logger == nil {
-		newLogger := Logger{
+func Get() Logger {
+	if instance == nil {
+		newLogger := logger{
 			categories: make(map[LogCategory]LogLevel),
 			logger:     log.Default(),
 			messages:   make(map[LogCategory][]string),
 		}
-		logger = &newLogger
+		instance = &newLogger
 	}
-	return logger
+	return instance
 }
 
-type Logger struct {
+type logger struct {
 	categories map[LogCategory]LogLevel
 	logger     *log.Logger
 	messages   map[LogCategory][]string
 }
 
-var logger ILogger
+var instance Logger
 
-func (l *Logger) Activate(category LogCategory, level LogLevel) {
+func (l *logger) Activate(category LogCategory, level LogLevel) {
 	if level == 0 {
 		level = Information
 	}
 	l.categories[category] = level
 }
-func (l *Logger) Log(category LogCategory, message string, level LogLevel) {
+func (l *logger) Log(category LogCategory, message string, level LogLevel) {
 	if level == 0 {
 		level = Information
 	}
@@ -75,13 +72,13 @@ func (l *Logger) Log(category LogCategory, message string, level LogLevel) {
 		l.logger.Println(message)
 	}
 }
-func (l *Logger) Info(category LogCategory, message string) {
+func (l *logger) Info(category LogCategory, message string) {
 	l.Log(category, message, Information)
 }
-func (l *Logger) GetMessages(category LogCategory) []string {
+func (l *logger) GetMessages(category LogCategory) []string {
 	return l.messages[category]
 }
-func (l *Logger) GetAllMessages() []string {
+func (l *logger) GetAllMessages() []string {
 	var result []string
 	for _, msgs := range l.messages {
 		for _, msg := range msgs {

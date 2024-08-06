@@ -7,40 +7,39 @@ import (
 	"sync"
 )
 
-type INode interface {
+type Node interface {
 	Add(in string, out string, transform func(string) string) error
 	AddReceiver(in string, receive func(string)) error
 	Start()
 }
 
-type Node struct {
+func Create(id string) Node {
+	newNode := node{id: id}
+	instances = append(instances, &newNode)
+	return &newNode
+}
+
+func Start() {
+	for _, entry := range instances {
+		entry.Start()
+	}
+}
+
+func WaitForClose() {
+	waitGroup.Wait()
+}
+
+type node struct {
 	id              string
 	transformations []transformationInfo
 	receivers       []receiveInfo
 }
 
-var nodes []*Node
-
-func CreateNode(id string) INode {
-	node := Node{id: id}
-	nodes = append(nodes, &node)
-	return &node
-}
-
-func StartNodes() {
-	for _, node := range nodes {
-		node.Start()
-	}
-}
-
-func CloseNodes() {
-	waitGroup.Wait()
-}
-
+var instances []*node
 var waitGroup sync.WaitGroup
 
-func (node *Node) Subscribe(topic string) (chan string, error) {
-	inChannel, err := broker.GetBroker().SubscribeTopic(topic)
+func (node *node) Subscribe(topic string) (chan string, error) {
+	inChannel, err := broker.Get().SubscribeTopic(topic)
 	if err != nil {
 		log.Info(log.Setup, "Topic "+topic+" does not exist: "+err.Error())
 		return nil, err
@@ -48,13 +47,13 @@ func (node *Node) Subscribe(topic string) (chan string, error) {
 	return inChannel, nil
 }
 
-func (node *Node) Add(in string, out string, transform func(string) string) error {
+func (node *node) Add(in string, out string, transform func(string) string) error {
 	inChannel, err := node.Subscribe(in)
 	if err != nil {
 		return err
 	}
 
-	outChannel := broker.GetBroker().CreateTopic(out)
+	outChannel := broker.Get().CreateTopic(out)
 	t := transformationInfo{in + "-" + out, inChannel, outChannel, transform}
 
 	node.transformations = append(node.transformations, t)
@@ -64,7 +63,7 @@ func (node *Node) Add(in string, out string, transform func(string) string) erro
 	return nil
 }
 
-func (node *Node) AddReceiver(topic string, receive func(string)) error {
+func (node *node) AddReceiver(topic string, receive func(string)) error {
 	channel, error := node.Subscribe(topic)
 	if error != nil {
 		return error
@@ -78,7 +77,7 @@ func (node *Node) AddReceiver(topic string, receive func(string)) error {
 	return nil
 }
 
-func (node *Node) Start() {
+func (node *node) Start() {
 	log.Info(log.StartStop, "STN "+node.id)
 	for _, t := range node.transformations {
 		waitGroup.Add(1)

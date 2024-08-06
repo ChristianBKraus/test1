@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-type IBroker interface {
+type Broker interface {
 	CreateTopic(topic string) chan string
 	CreateProducer(topic string) chan string
 	SubscribeTopic(topic string) (chan string, error)
@@ -15,7 +15,17 @@ type IBroker interface {
 	Send(topic string, value string) error
 	Close()
 }
-type Broker struct {
+
+func Get() Broker {
+	if instance == nil {
+		newBroker := broker{}
+		newBroker.topics = make(map[string]*topicInfo)
+		instance = &newBroker
+	}
+	return instance
+}
+
+type broker struct {
 	topics    map[string]*topicInfo
 	producers []string
 	mutex     sync.Mutex
@@ -27,18 +37,9 @@ type topicInfo struct {
 	output []chan string
 }
 
-var broker IBroker
+var instance Broker
 
-func GetBroker() IBroker {
-	if broker == nil {
-		newBroker := Broker{}
-		newBroker.topics = make(map[string]*topicInfo)
-		broker = &newBroker
-	}
-	return broker
-}
-
-func (b *Broker) CreateTopic(topic string) chan string {
+func (b *broker) CreateTopic(topic string) chan string {
 	channel := make(chan string)
 
 	info := topicInfo{id: topic, input: channel}
@@ -52,12 +53,12 @@ func (b *Broker) CreateTopic(topic string) chan string {
 	return channel
 }
 
-func (b *Broker) CreateProducer(topic string) chan string {
+func (b *broker) CreateProducer(topic string) chan string {
 	b.producers = append(b.producers, topic)
 	return b.CreateTopic(topic)
 }
 
-func (b *Broker) SubscribeTopic(topic string) (chan string, error) {
+func (b *broker) SubscribeTopic(topic string) (chan string, error) {
 	log.Info(log.Setup, "ASB "+topic)
 
 	topicInfo, ok := b.topics[topic]
@@ -71,13 +72,13 @@ func (b *Broker) SubscribeTopic(topic string) (chan string, error) {
 	return channel, nil
 }
 
-func (b *Broker) Start() {
+func (b *broker) Start() {
 	for _, topicInfo := range b.topics {
 		go distribute(topicInfo.id, topicInfo.input, topicInfo.output)
 	}
 }
 
-func (b *Broker) Send(topic string, value string) error {
+func (b *broker) Send(topic string, value string) error {
 	topicInfo, ok := b.topics[topic]
 	if !ok {
 		return utility.NewError("Topic does not exist")
@@ -87,7 +88,7 @@ func (b *Broker) Send(topic string, value string) error {
 	return nil
 }
 
-func (b *Broker) Close() {
+func (b *broker) Close() {
 	for _, producer := range b.producers {
 		log.Info(log.StartStop, "EPR "+producer)
 		close(b.topics[producer].input)
