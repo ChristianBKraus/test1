@@ -1,7 +1,7 @@
 package core
 
 import (
-	"log"
+	log "jupiterpa/fin/core/log"
 	"sync"
 )
 
@@ -45,7 +45,7 @@ func (b *Broker) CreateTopic(topic string) chan string {
 	b.topics[topic] = &info
 	b.mutex.Unlock()
 
-	log.Println("ADD " + topic)
+	log.Info(log.Setup, "ADD "+topic)
 
 	return channel
 }
@@ -56,7 +56,7 @@ func (b *Broker) CreateProducer(topic string) chan string {
 }
 
 func (b *Broker) SubscribeTopic(topic string) (chan string, error) {
-	log.Println("SUB " + topic)
+	log.Info(log.Setup, "SUB "+topic)
 
 	topicInfo, ok := b.topics[topic]
 	if !ok {
@@ -80,25 +80,25 @@ func (b *Broker) Send(topic string, value string) error {
 	if !ok {
 		return &Error{"Topic does not exist"}
 	}
-	log.Println("SND " + topic + " <- " + value)
+	log.Info(log.Process, "SND "+topic+" <- "+value)
 	topicInfo.input <- value
 	return nil
 }
 
 func (b *Broker) Close() {
 	for _, producer := range b.producers {
-		log.Println("EPR " + producer)
+		log.Info(log.StartStop, "EPR "+producer)
 		close(b.topics[producer].input)
 	}
 	waitForNodesToEnd()
 }
 
 func distribute(topic string, inChannel chan string, outChannels []chan string) {
-	log.Println("SDS " + topic)
+	log.Info(log.StartStop, "SDS "+topic)
 	for {
 		value, ok := <-inChannel
 		if !ok {
-			log.Println("EDS " + topic)
+			log.Info(log.StartStop, "EDS "+topic)
 			for _, outChannel := range outChannels {
 				close(outChannel)
 			}
@@ -106,7 +106,7 @@ func distribute(topic string, inChannel chan string, outChannels []chan string) 
 		}
 		for _, outChannel := range outChannels {
 			outChannel <- value
-			log.Println("DIS " + topic + " <- " + value)
+			log.Info(log.Process, "DIS "+topic+" <- "+value)
 		}
 	}
 }

@@ -1,7 +1,7 @@
 package core
 
 import (
-	"log"
+	log "jupiterpa/fin/core/log"
 	"sync"
 )
 
@@ -40,7 +40,7 @@ var waitGroup sync.WaitGroup
 func (node *Node) Subscribe(topic string) (chan string, error) {
 	inChannel, err := broker.SubscribeTopic(topic)
 	if err != nil {
-		log.Println("Topic " + topic + " does not exist: " + err.Error())
+		log.Info(log.Setup, "Topic "+topic+" does not exist: "+err.Error())
 		return nil, err
 	}
 	return inChannel, nil
@@ -57,7 +57,7 @@ func (node *Node) Add(in string, out string, transform func(string) string) erro
 
 	node.transformations = append(node.transformations, t)
 
-	log.Println("ADT " + node.id + ": " + in + "-" + out)
+	log.Info(log.Setup, "ADT "+node.id+": "+in+"-"+out)
 
 	return nil
 }
@@ -71,13 +71,13 @@ func (node *Node) AddReceiver(topic string, receive func(string)) error {
 	r := receiveInfo{topic, channel, receive}
 	node.receivers = append(node.receivers, r)
 
-	log.Println("ADR " + node.id + ": " + topic)
+	log.Info(log.Setup, "ADR "+node.id+": "+topic)
 
 	return nil
 }
 
 func (node *Node) Start() {
-	log.Println("BEG " + node.id)
+	log.Info(log.StartStop, "BEG "+node.id)
 	for _, t := range node.transformations {
 		waitGroup.Add(1)
 		go doTransformation(node.id, t)
@@ -103,30 +103,30 @@ type receiveInfo struct {
 
 func doTransformation(nodeId string, t transformationInfo) {
 	defer waitGroup.Done()
-	log.Println("STT " + nodeId + ": " + t.id)
+	log.Info(log.StartStop, "STT "+nodeId+": "+t.id)
 	for {
 		in, ok := <-t.in
 		if !ok {
-			log.Println("ENT " + nodeId + ": " + t.id)
+			log.Info(log.StartStop, "ENT "+nodeId+": "+t.id)
 			close(t.out)
 			return
 		}
 		out := t.transform(in)
-		log.Println("MAP " + nodeId + ": " + in + " -> " + out)
+		log.Info(log.Process, "MAP "+nodeId+": "+in+" -> "+out)
 		t.out <- out
 	}
 }
 
 func doReceiver(nodeId string, r receiveInfo) {
 	defer waitGroup.Done()
-	log.Println("STR " + nodeId + ": " + r.id)
+	log.Info(log.StartStop, "STR "+nodeId+": "+r.id)
 	for {
 		in, ok := <-r.in
 		if !ok {
-			log.Println("ENR " + nodeId + ": " + r.id)
+			log.Info(log.StartStop, "ENR "+nodeId+": "+r.id)
 			return
 		}
-		log.Println("REC " + nodeId + ": " + in)
+		log.Info(log.Process, "REC "+nodeId+": "+in)
 		r.function(in)
 	}
 }

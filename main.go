@@ -2,7 +2,7 @@ package main
 
 import (
 	"jupiterpa/fin/core"
-	"log"
+	log "jupiterpa/fin/core/log"
 )
 
 func topic1_2_topic2(in string) string {
@@ -20,7 +20,7 @@ const NODE_1 = "Node 1"
 const NODE_2 = "Node 2"
 
 func setup() core.IBroker {
-	log.Println("Start Setup")
+	log.Info(log.Setup, "Start Setup")
 	broker := core.GetBroker()
 
 	broker.CreateProducer(TOPIC_1)
@@ -34,13 +34,16 @@ func setup() core.IBroker {
 	broker.Start()
 	core.StartNodes()
 
-	log.Println("Finsh Setup")
-	log.Println()
+	log.Info(log.Setup, "Finish Setup")
+	log.Info(log.Setup, "")
 
 	return broker
 }
 
 func main() {
+	log.Get().Activate(log.Setup, log.Information)
+	log.Get().Activate(log.StartStop, log.Information)
+	log.Get().Activate(log.Process, log.Information)
 
 	broker := setup()
 
