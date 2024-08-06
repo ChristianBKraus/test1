@@ -1,8 +1,9 @@
-package core
+package broker
 
 import (
 	"fmt"
 	log "jupiterpa/fin/core/log"
+	utility "jupiterpa/fin/core/utility"
 	"sync"
 )
 
@@ -61,7 +62,7 @@ func (b *Broker) SubscribeTopic(topic string) (chan string, error) {
 
 	topicInfo, ok := b.topics[topic]
 	if !ok {
-		return nil, &Error{"Topic does not exist"}
+		return nil, utility.NewError("Topic does not exist")
 	}
 
 	channel := make(chan string)
@@ -79,7 +80,7 @@ func (b *Broker) Start() {
 func (b *Broker) Send(topic string, value string) error {
 	topicInfo, ok := b.topics[topic]
 	if !ok {
-		return &Error{"Topic does not exist"}
+		return utility.NewError("Topic does not exist")
 	}
 	log.Info(log.Process, fmt.Sprintf("SND %-10s <- %s", topic, value))
 	topicInfo.input <- value
@@ -91,7 +92,6 @@ func (b *Broker) Close() {
 		log.Info(log.StartStop, "EPR "+producer)
 		close(b.topics[producer].input)
 	}
-	waitForNodesToEnd()
 }
 
 func distribute(topic string, inChannel chan string, outChannels []chan string) {

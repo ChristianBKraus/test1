@@ -1,7 +1,8 @@
-package core
+package node
 
 import (
 	"fmt"
+	broker "jupiterpa/fin/core/broker"
 	log "jupiterpa/fin/core/log"
 	"sync"
 )
@@ -32,14 +33,14 @@ func StartNodes() {
 	}
 }
 
-func waitForNodesToEnd() {
+func CloseNodes() {
 	waitGroup.Wait()
 }
 
 var waitGroup sync.WaitGroup
 
 func (node *Node) Subscribe(topic string) (chan string, error) {
-	inChannel, err := broker.SubscribeTopic(topic)
+	inChannel, err := broker.GetBroker().SubscribeTopic(topic)
 	if err != nil {
 		log.Info(log.Setup, "Topic "+topic+" does not exist: "+err.Error())
 		return nil, err
@@ -53,7 +54,7 @@ func (node *Node) Add(in string, out string, transform func(string) string) erro
 		return err
 	}
 
-	outChannel := broker.CreateTopic(out)
+	outChannel := broker.GetBroker().CreateTopic(out)
 	t := transformationInfo{in + "-" + out, inChannel, outChannel, transform}
 
 	node.transformations = append(node.transformations, t)
