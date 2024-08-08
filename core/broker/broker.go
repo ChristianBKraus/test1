@@ -58,12 +58,19 @@ func (b *broker) CreateProducer(topic string) chan string {
 	return b.CreateTopic(topic)
 }
 
+func errorTopicNotExists(category log.LogCategory, topic string) *utility.Error {
+	message := "Topic " + topic + " does not exist"
+	log.Get().Log(category, message, log.Error)
+	err := utility.NewError(message)
+	return err
+}
+
 func (b *broker) SubscribeTopic(topic string) (chan string, error) {
 	log.Info(log.Setup, "ASB "+topic)
 
 	topicInfo, ok := b.topics[topic]
 	if !ok {
-		return nil, utility.NewError("Topic does not exist")
+		return nil, errorTopicNotExists(log.Setup, topic)
 	}
 
 	channel := make(chan string)
@@ -81,7 +88,7 @@ func (b *broker) Start() {
 func (b *broker) Send(topic string, value string) error {
 	topicInfo, ok := b.topics[topic]
 	if !ok {
-		return utility.NewError("Topic does not exist")
+		return errorTopicNotExists(log.Process, topic)
 	}
 	log.Info(log.Process, fmt.Sprintf("SND %-10s <- %s", topic, value))
 	topicInfo.input <- value

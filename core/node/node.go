@@ -41,7 +41,6 @@ var waitGroup sync.WaitGroup
 func (node *node) Subscribe(topic string) (chan string, error) {
 	inChannel, err := broker.Get().SubscribeTopic(topic)
 	if err != nil {
-		log.Info(log.Setup, "Topic "+topic+" does not exist: "+err.Error())
 		return nil, err
 	}
 	return inChannel, nil
