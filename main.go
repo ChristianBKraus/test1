@@ -2,23 +2,31 @@ package main
 
 import (
 	broker "jupiterpa/fin/core/broker"
+	data "jupiterpa/fin/core/data"
 	log "jupiterpa/fin/core/log"
 	node "jupiterpa/fin/core/node"
 )
 
-func topic1_2_topic2(in string) string {
-	return in + "."
+func topic1_2_topic2(in data.Message) data.Message {
+	in.Header.Typ = TYP_B
+	in.Body.Payload += "."
+	return in
 }
 
-func topic2_rec(in string) {
-
+func topic2_rec(in data.Message) {
+	in.Header.Typ = TYP_C
+	in.Body.Payload += "."
 }
 
 const TOPIC_1 = "Topic_1"
 const TOPIC_2 = "Topic_2"
 
-const NODE_1 = "Node 1"
-const NODE_2 = "Node 2"
+const TYP_A = "A"
+const TYP_B = "B"
+const TYP_C = "C"
+
+const NODE_1 = "Node_1"
+const NODE_2 = "Node_2"
 
 func setup() broker.Broker {
 	log.Info(log.Setup, "Start Setup")
@@ -48,8 +56,19 @@ func main() {
 
 	broker := setup()
 
-	broker.Send(TOPIC_1, "Test 1")
-	broker.Send(TOPIC_1, "Test 2")
+	msg_1 := data.Message{
+		Header: data.GetHeader(TYP_A),
+		Body: data.MessageBody{
+			Payload: "Test1"},
+	}
+	msg_2 := data.Message{
+		Header: data.GetHeader(TYP_A),
+		Body: data.MessageBody{
+			Payload: "Test2"},
+	}
+
+	broker.Send(TOPIC_1, msg_1)
+	broker.Send(TOPIC_1, msg_2)
 
 	broker.Close()
 	node.WaitForClose()

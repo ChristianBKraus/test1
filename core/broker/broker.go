@@ -2,17 +2,18 @@ package broker
 
 import (
 	"fmt"
+	data "jupiterpa/fin/core/data"
 	log "jupiterpa/fin/core/log"
 	utility "jupiterpa/fin/core/utility"
 	"sync"
 )
 
 type Broker interface {
-	CreateTopic(topic string) chan string
-	CreateProducer(topic string) chan string
-	SubscribeTopic(topic string) (chan string, error)
+	CreateTopic(topic string) chan data.Message
+	CreateProducer(topic string) chan data.Message
+	SubscribeTopic(topic string) (chan data.Message, error)
 	Start()
-	Send(topic string, value string) error
+	Send(topic string, value data.Message) error
 	Close()
 }
 
@@ -33,14 +34,14 @@ type broker struct {
 
 type topicInfo struct {
 	id     string
-	input  chan string
-	output []chan string
+	input  chan data.Message
+	output []chan data.Message
 }
 
 var instance Broker
 
-func (b *broker) CreateTopic(topic string) chan string {
-	channel := make(chan string)
+func (b *broker) CreateTopic(topic string) chan data.Message {
+	channel := make(chan data.Message)
 
 	info := topicInfo{id: topic, input: channel}
 
@@ -53,7 +54,7 @@ func (b *broker) CreateTopic(topic string) chan string {
 	return channel
 }
 
-func (b *broker) CreateProducer(topic string) chan string {
+func (b *broker) CreateProducer(topic string) chan data.Message {
 	b.producers = append(b.producers, topic)
 	return b.CreateTopic(topic)
 }
@@ -65,7 +66,7 @@ func errorTopicNotExists(category log.LogCategory, topic string) *utility.Error 
 	return err
 }
 
-func (b *broker) SubscribeTopic(topic string) (chan string, error) {
+func (b *broker) SubscribeTopic(topic string) (chan data.Message, error) {
 	log.Info(log.Setup, "ASB "+topic)
 
 	topicInfo, ok := b.topics[topic]
@@ -73,7 +74,7 @@ func (b *broker) SubscribeTopic(topic string) (chan string, error) {
 		return nil, errorTopicNotExists(log.Setup, topic)
 	}
 
-	channel := make(chan string)
+	channel := make(chan data.Message)
 	topicInfo.output = append(b.topics[topic].output, channel)
 
 	return channel, nil
@@ -85,7 +86,7 @@ func (b *broker) Start() {
 	}
 }
 
-func (b *broker) Send(topic string, value string) error {
+func (b *broker) Send(topic string, value data.Message) error {
 	topicInfo, ok := b.topics[topic]
 	if !ok {
 		return errorTopicNotExists(log.Process, topic)
@@ -102,7 +103,7 @@ func (b *broker) Close() {
 	}
 }
 
-func distribute(topic string, inChannel chan string, outChannels []chan string) {
+func distribute(topic string, inChannel chan data.Message, outChannels []chan data.Message) {
 	log.Info(log.StartStop, "SDS "+topic)
 	for {
 		value, ok := <-inChannel

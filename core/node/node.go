@@ -3,13 +3,14 @@ package node
 import (
 	"fmt"
 	broker "jupiterpa/fin/core/broker"
+	data "jupiterpa/fin/core/data"
 	log "jupiterpa/fin/core/log"
 	"sync"
 )
 
 type Node interface {
-	Add(in string, out string, transform func(string) string) error
-	AddReceiver(in string, receive func(string)) error
+	Add(in string, out string, transform func(data.Message) data.Message) error
+	AddReceiver(in string, receive func(data.Message)) error
 	Start()
 }
 
@@ -38,7 +39,7 @@ type node struct {
 var instances []*node
 var waitGroup sync.WaitGroup
 
-func (node *node) Subscribe(topic string) (chan string, error) {
+func (node *node) Subscribe(topic string) (chan data.Message, error) {
 	inChannel, err := broker.Get().SubscribeTopic(topic)
 	if err != nil {
 		return nil, err
@@ -46,7 +47,7 @@ func (node *node) Subscribe(topic string) (chan string, error) {
 	return inChannel, nil
 }
 
-func (node *node) Add(in string, out string, transform func(string) string) error {
+func (node *node) Add(in string, out string, transform func(data.Message) data.Message) error {
 	inChannel, err := node.Subscribe(in)
 	if err != nil {
 		return err
@@ -62,7 +63,7 @@ func (node *node) Add(in string, out string, transform func(string) string) erro
 	return nil
 }
 
-func (node *node) AddReceiver(topic string, receive func(string)) error {
+func (node *node) AddReceiver(topic string, receive func(data.Message)) error {
 	channel, error := node.Subscribe(topic)
 	if error != nil {
 		return error
@@ -90,15 +91,15 @@ func (node *node) Start() {
 
 type transformationInfo struct {
 	id        string
-	in        chan string
-	out       chan string
-	transform func(string) string
+	in        chan data.Message
+	out       chan data.Message
+	transform func(data.Message) data.Message
 }
 
 type receiveInfo struct {
 	id       string
-	in       chan string
-	function func(string)
+	in       chan data.Message
+	function func(data.Message)
 }
 
 func doTransformation(nodeId string, t transformationInfo) {
