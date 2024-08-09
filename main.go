@@ -49,6 +49,10 @@ func close() {
 	broker.Get().Close()
 	node.WaitForClose()
 
+	wait()
+}
+
+func wait() {
 	// Pause main routine to allow for test of REST server
 	node.WaitUnlimited()
 }
@@ -62,6 +66,6 @@ func main() {
 
 	send()
 
-	close()
+	wait()
 
 }
