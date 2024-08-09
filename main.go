@@ -83,12 +83,14 @@ func main() {
 	//log.Get().Activate(log.StartStop, log.Information)
 	log.Get().Activate(log.Process, log.Information)
 
+	// Start REST Server in seperate task
 	server := rest.Get()
 	server.AddGet("/hello", hello)
 	server.AddGet("/hello/:id", helloId)
 	server.AddPost("/hellopost", helloPost)
 	go server.Start()
 
+	// Test Messaging
 	broker := setup()
 
 	msg_1 := data.Message{
@@ -107,4 +109,7 @@ func main() {
 
 	broker.Close()
 	node.WaitForClose()
+
+	// Pause main routine to allow for test of REST server
+	node.WaitUnlimited()
 }

@@ -29,6 +29,10 @@ func Start() {
 func WaitForClose() {
 	waitGroup.Wait()
 }
+func WaitUnlimited() {
+	waitGroup.Add(1)
+	waitGroup.Wait()
+}
 
 type node struct {
 	id              string
