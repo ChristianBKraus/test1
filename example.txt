@@ -1,0 +1,1 @@
+curl http://localhost:8080/message/a --include --header "Content-Type: application/json" --request "POST" --data '{"id1":"ID1","id2":"ID2"}'
