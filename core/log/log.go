@@ -1,6 +1,8 @@
 package log
 
-import "log"
+import (
+	"log"
+)
 
 type LogLevel int
 type LogCategory int

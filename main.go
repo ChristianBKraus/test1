@@ -12,6 +12,10 @@ import (
 )
 
 func setup() {
+	//log.Get().Activate(log.Setup, log.Information)
+	//log.Get().Activate(log.StartStop, log.Information)
+	log.Get().Activate(log.Process, log.Information)
+
 	log.Info(log.Setup, "Start Setup")
 
 	restNode.Setup()
@@ -58,14 +62,7 @@ func wait() {
 }
 
 func main() {
-	//log.Get().Activate(log.Setup, log.Information)
-	//log.Get().Activate(log.StartStop, log.Information)
-	log.Get().Activate(log.Process, log.Information)
-
 	setup()
-
 	send()
-
 	wait()
-
 }

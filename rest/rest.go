@@ -11,15 +11,14 @@ import (
 )
 
 const TOPIC_1 = "Topic_1"
-
 const TYP_A = "A"
 
 func Setup() {
-	setupRestServer()
 	setupProducer()
+	setupRestServer()
 }
 
-// --------------------------------------------------------
+// ---------------- Setup-----------------------------
 
 func setupProducer() {
 	broker.Get().CreateProducer(TOPIC_1)
@@ -29,6 +28,7 @@ func setupRestServer() {
 	server := rest.Get()
 	addHello(server)
 	addMessage(server)
+	addEndpoints(server)
 	go server.Start()
 }
 
@@ -42,10 +42,17 @@ func (c Content) String() string {
 	return c.Id1 + "/" + c.Id2
 }
 
+// ------------------- Endpoint -------------------
+
+func addEndpoints(server rest.HttpNode) {
+	var content Content
+	server.AddEndpoint(TYP_A, &content, TOPIC_1)
+}
+
 // ------------------- Message ------------------
 
 func addMessage(server rest.HttpNode) {
-	server.AddPost("/message/a", handleA)
+	server.AddPost("/message/b", handleA)
 }
 
 func handleA(context *gin.Context) {

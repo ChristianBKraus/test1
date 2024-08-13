@@ -1,1 +1,1 @@
-curl http://localhost:8080/message/a --include --header "Content-Type: application/json" --request "POST" --data '{"id1":"ID1","id2":"ID2"}'
+curl -X POST http://localhost:8080/message/A -H 'Content-Type: application/json' -d '{"Header": { "Typ":"A", "Id":"4711" }, "Body": { "Payload": "{ \"id1\":\"ID1\",\"id2\":\"ID2\" }" } }'

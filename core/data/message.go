@@ -14,6 +14,7 @@ type MessageHeader struct {
 
 type MessageBody struct {
 	Payload string
+	Object  *any
 }
 
 // ----------------------------------------------------------------
@@ -32,4 +33,7 @@ var counter int = 0
 
 func (h MessageHeader) String() string {
 	return "<" + h.Typ + "-" + h.Id + ">"
+}
+func (h Message) String() string {
+	return "{ " + h.Header.String() + "/" + h.Body.Payload + " }"
 }
