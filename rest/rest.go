@@ -61,7 +61,7 @@ func handleA(context *gin.Context) {
 		return
 	}
 	message := data.Message{
-		Header: data.GetHeader(TYP_A),
+		Header: data.CreateHeader(TYP_A),
 		Body: data.MessageBody{
 			Payload: fmt.Sprintf("%s", content)},
 	}

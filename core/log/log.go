@@ -18,6 +18,7 @@ const (
 	Setup LogCategory = iota + 1
 	StartStop
 	Process
+	Message
 )
 
 type Logger interface {

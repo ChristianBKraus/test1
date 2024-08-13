@@ -19,7 +19,7 @@ type MessageBody struct {
 
 // ----------------------------------------------------------------
 
-func GetHeader(typ string) MessageHeader {
+func CreateHeader(typ string) MessageHeader {
 	var id string
 	counter++
 	id = fmt.Sprintf("%d", counter)

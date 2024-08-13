@@ -26,6 +26,7 @@ func Get() Broker {
 	return instance
 }
 
+// -----------------------------------------------------------------------------------------
 type broker struct {
 	topics    map[string]*topicInfo
 	producers []string
@@ -92,6 +93,7 @@ func (b *broker) Send(topic string, value data.Message) error {
 		return errorTopicNotExists(log.Process, topic)
 	}
 	log.Info(log.Process, fmt.Sprintf("SND %-10s <- %s", topic, value))
+	log.Info(log.Message, fmt.Sprintf("SND %-10s <- %s", topic, value))
 	topicInfo.input <- value
 	return nil
 }

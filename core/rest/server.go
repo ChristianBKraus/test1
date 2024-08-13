@@ -81,6 +81,7 @@ func handleEndpoint(context *gin.Context) {
 	input.Body.Object = &(registry.Structure)
 
 	log.Info(log.Process, fmt.Sprintf("HTTP %s", input))
+	log.Info(log.Message, fmt.Sprintf("HTTP           -> %s", input))
 
 	broker.Get().Send(registry.Topic, input)
 }

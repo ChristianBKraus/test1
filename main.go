@@ -14,7 +14,8 @@ import (
 func setup() {
 	//log.Get().Activate(log.Setup, log.Information)
 	//log.Get().Activate(log.StartStop, log.Information)
-	log.Get().Activate(log.Process, log.Information)
+	//log.Get().Activate(log.Process, log.Information)
+	log.Get().Activate(log.Message, log.Information)
 
 	log.Info(log.Setup, "Start Setup")
 
@@ -35,12 +36,12 @@ func send() {
 	broker := broker.Get()
 
 	msg_1 := data.Message{
-		Header: data.GetHeader(restNode.TYP_A),
+		Header: data.CreateHeader(restNode.TYP_A),
 		Body: data.MessageBody{
 			Payload: "Test1"},
 	}
 	msg_2 := data.Message{
-		Header: data.GetHeader(restNode.TYP_A),
+		Header: data.CreateHeader(restNode.TYP_A),
 		Body: data.MessageBody{
 			Payload: "Test2"},
 	}

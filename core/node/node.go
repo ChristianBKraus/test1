@@ -118,6 +118,7 @@ func doTransformation(nodeId string, t transformationInfo) {
 		}
 		out := t.transform(in)
 		log.Info(log.Process, fmt.Sprintf("MAP %-10s -- %s -> %s", nodeId, in, out))
+		log.Info(log.Message, fmt.Sprintf("MAP %-10s -- %s -> %s", nodeId, in, out))
 		t.out <- out
 	}
 }
@@ -132,6 +133,7 @@ func doReceiver(nodeId string, r receiveInfo) {
 			return
 		}
 		log.Info(log.Process, fmt.Sprintf("REC %-10s -> %s", nodeId, in))
+		log.Info(log.Message, fmt.Sprintf("REC %-10s -> %s", nodeId, in))
 		r.function(in)
 	}
 }
